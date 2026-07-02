@@ -1,0 +1,763 @@
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".quarto-title-meta-contents").forEach(function (el) {
+      if (el.textContent.trim().toLowerCase() !== "invalid date") return;
+
+      el.textContent = new Date().toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    });
+  });
+</script>
+
+<script>
+  /* ═══════════════════════════════════════════════
+     THEME — apply early to minimize flash of wrong theme
+     ═══════════════════════════════════════════════ */
+  (function () {
+    var theme;
+    try {
+      var stored = localStorage.getItem("theme");
+      if (stored === "light" || stored === "dark") theme = stored;
+    } catch (e) { }
+    if (!theme) {
+      theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const toc = document.querySelector("#TOC");
+    if (!toc) return;
+    const sidebar = document.querySelector("#quarto-margin-sidebar");
+
+    const pages = [
+      {
+        id: "home",
+        label: "Home",
+        href: "#home",
+        description: "Pipeline overview figure and quick start",
+        roots: ["#home"]
+      },
+      {
+        id: "overview",
+        label: "Overview",
+        href: "#pipeline-overview-brief",
+        description: "Cohort mapping, directories, and QC summary",
+        roots: [
+          "#pipeline-overview-brief",
+          "#directory-structure",
+          "#pre-imputation-qc-summary"
+        ]
+      },
+      {
+        id: "exploratory",
+        label: "Exploratory Analysis",
+        href: "#exploratory-analysis",
+        description: "Inspect raw PLINK files and initial data quality",
+        roots: ["#exploratory-analysis"]
+      },
+      {
+        id: "file-prep",
+        label: "File Prep",
+        href: "#file-prep",
+        description: "Clean sample IDs, add sex, and convert to PLINK2",
+        roots: ["#file-prep"]
+      },
+      {
+        id: "snp-qc",
+        label: "SNP QC",
+        href: "#pre-imputation-qc-snps",
+        description: "Variant filtering by call-rate, MAF, and HWE",
+        roots: ["#pre-imputation-qc-snps"]
+      },
+      {
+        id: "samples-qc",
+        label: "Sample QC",
+        href: "#pre-imputation-qc-samples",
+        description: "Heterozygosity, sex-check, and ancestry PCA",
+        roots: ["#pre-imputation-qc-samples"]
+      },
+      {
+        id: "topmed",
+        label: "TOPMed Imputation",
+        href: "#topmed-imputation",
+        description: "McCarthy QC, cohort merge, and imputation",
+        roots: ["#topmed-imputation"]
+      },
+      {
+        id: "post-imputation",
+        label: "Post-Imputation",
+        href: "#post-imputation",
+        description: "Final MAF and R² filtering for GWAS",
+        roots: ["#post-imputation"]
+      }
+    ];
+
+    function targetForHash(hash) {
+      if (!hash || hash.charAt(0) !== "#") return null;
+      return document.getElementById(decodeURIComponent(hash.slice(1)));
+    }
+
+    function pageForHash(hash) {
+      const target = targetForHash(hash);
+      if (!target) return null;
+
+      return pages.find(function (page) {
+        return page.roots.some(function (root) {
+          const section = targetForHash(root);
+          return section && (target === section || section.contains(target));
+        });
+      });
+    }
+
+    const workflowMarkup =
+      '<div class="workflow-sidebar__content">' +
+      '<a class="pipeline-nav__brand" href="#home">Genotype Imputation</a>' +
+      '<hr class="pipeline-nav__divider">' +
+      '<div class="pipeline-nav__section-title">Pipeline</div>' +
+      '<ul class="pipeline-nav">' +
+      pages
+        .map(function (item) {
+          return (
+            '<li><a href="' +
+            item.href +
+            '" data-page-id="' +
+            item.id +
+            '">' +
+            item.label +
+            "</a></li>"
+          );
+        })
+        .join("") +
+      "</ul>" +
+      '</div>' +
+      '<div class="workflow-sidebar__footer">' +
+      '<a href="https://www.github.com/BioInUmer/" target="_blank" title="GitHub" class="social-link"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg></a>' +
+      '<div class="theme-toggle"><button title="Light Mode" class="theme-btn active"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button><button title="Dark Mode" class="theme-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button></div>' +
+      '</div>';
+
+    toc.hidden = true;
+
+    const workflowSidebar = document.createElement("aside");
+    workflowSidebar.id = "workflow-sidebar";
+    workflowSidebar.innerHTML = workflowMarkup;
+
+    const toggleBtn = document.createElement("button");
+    toggleBtn.id = "sidebar-toggle";
+    toggleBtn.className = "sidebar-toggle";
+    toggleBtn.title = "Toggle Sidebar";
+    toggleBtn.setAttribute("aria-label", "Toggle Sidebar");
+    toggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+
+    toggleBtn.addEventListener("click", function () {
+      workflowSidebar.classList.toggle("is-collapsed");
+      const quartoContent = document.getElementById("quarto-content");
+      if (quartoContent) {
+        quartoContent.classList.toggle("sidebar-collapsed");
+      }
+    });
+
+    workflowSidebar.appendChild(toggleBtn);
+    document.body.appendChild(workflowSidebar);
+    document.body.classList.add("has-navbar");
+
+    const pageToc = document.createElement("aside");
+    pageToc.id = "page-toc";
+    pageToc.innerHTML = '<div class="page-toc__title">On this page</div><nav></nav>';
+    document.body.appendChild(pageToc);
+
+    const titleBlock = document.querySelector("#title-block-header");
+    const introNodes = [];
+    if (titleBlock) {
+      let node = titleBlock.nextElementSibling;
+      while (node && !node.matches("section.level2")) {
+        introNodes.push(node);
+        node = node.nextElementSibling;
+      }
+    }
+
+    const topSections = Array.from(document.querySelectorAll("main.content > section.level2"));
+    topSections.forEach(function (section) {
+      const owner = pages.find(function (page) {
+        return page.roots.includes("#" + section.id);
+      });
+
+      if (owner) section.dataset.pageId = owner.id;
+    });
+
+    let pageHeadings = [];
+    let pageTopSections = [];
+
+    function cleanHeadingText(section) {
+      const heading = section.querySelector(":scope > h2, :scope > h3, :scope > h4");
+      if (!heading) return "";
+
+      const clone = heading.cloneNode(true);
+      clone.querySelectorAll(".anchorjs-link").forEach(function (anchor) {
+        anchor.remove();
+      });
+      return clone.textContent.trim();
+    }
+
+    function buildPageToc(page) {
+      const nav = pageToc.querySelector("nav");
+      pageTopSections = page.roots
+        .map(function (root) {
+          return targetForHash(root);
+        })
+        .filter(Boolean);
+
+      pageHeadings = pageTopSections.flatMap(function (section) {
+        return [section].concat(Array.from(section.querySelectorAll("section.level3, section.level4")));
+      });
+
+      nav.innerHTML = pageHeadings
+        .map(function (section) {
+          const level = section.classList.contains("level4")
+            ? "h4"
+            : section.classList.contains("level3")
+              ? "h3"
+              : "h2";
+          const root = pageTopSections.find(function (topSection) {
+            return section === topSection || topSection.contains(section);
+          }) || section;
+          return (
+            '<a class="page-toc__link page-toc__link--' +
+            level +
+            '" data-root-id="' +
+            root.id +
+            '" href="#' +
+            section.id +
+            '">' +
+            cleanHeadingText(section) +
+            "</a>"
+          );
+        })
+        .join("");
+    }
+
+    function setRightTocActive() {
+      if (!pageHeadings.length) return;
+
+      let active = pageHeadings[0];
+
+      // Check if scrolled near the bottom of the page
+      const scrollHeight = document.documentElement.scrollHeight;
+      const clientHeight = document.documentElement.clientHeight;
+      const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+      const isAtBottom = (scrollTop + clientHeight) >= (scrollHeight - 40);
+
+      if (isAtBottom) {
+        active = pageHeadings[pageHeadings.length - 1];
+      } else {
+        const threshold = Math.min(200, window.innerHeight * 0.3);
+        pageHeadings.forEach(function (section) {
+          if (section.getBoundingClientRect().top < threshold) active = section;
+        });
+      }
+
+      let activePath = new Set();
+      let curr = active;
+      while (curr && curr.tagName && curr.tagName.toLowerCase() === 'section') {
+        activePath.add(curr.id);
+        curr = curr.parentElement.closest("section");
+      }
+
+      pageToc.querySelectorAll("a").forEach(function (link) {
+        const sectionId = link.getAttribute("href").slice(1);
+        const section = document.getElementById(sectionId);
+        if (!section) return;
+
+        const isTopLevel = pageTopSections.includes(section);
+        const parentSection = section.parentElement.closest("section");
+        const parentId = parentSection ? parentSection.id : null;
+
+        const isVisible = isTopLevel || (parentId && activePath.has(parentId));
+
+        link.classList.toggle("is-active", section === active);
+        link.classList.toggle("is-visible", isVisible);
+      });
+    }
+
+    function scrollToHash(hash) {
+      const target = targetForHash(hash);
+      if (!target) return;
+
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function renderPageNav(page) {
+      document.querySelectorAll(".page-nav").forEach(function (el) {
+        el.remove();
+      });
+
+      const idx = pages.findIndex(function (item) {
+        return item.id === page.id;
+      });
+      if (idx < 0) return;
+
+      const nav = document.createElement("div");
+      nav.className = "page-nav";
+
+      if (idx > 0) {
+        const prev = pages[idx - 1];
+        nav.insertAdjacentHTML(
+          "beforeend",
+          '<a class="nav-card nav-card--prev' +
+          (idx === pages.length - 1 ? " nav-card--solo" : "") +
+          '" href="' +
+          prev.href +
+          '" data-page-id="' +
+          prev.id +
+          '">' +
+          '<span class="nav-card__direction">Previous</span>' +
+          '<span class="nav-card__title">' +
+          prev.label +
+          "</span>" +
+          '<span class="nav-card__body">' +
+          prev.description +
+          "</span></a>"
+        );
+      }
+
+      if (idx < pages.length - 1) {
+        const next = pages[idx + 1];
+        nav.insertAdjacentHTML(
+          "beforeend",
+          '<a class="nav-card nav-card--next' +
+          (idx === 0 ? " nav-card--solo" : "") +
+          '" href="' +
+          next.href +
+          '" data-page-id="' +
+          next.id +
+          '">' +
+          '<span class="nav-card__direction">Next</span>' +
+          '<span class="nav-card__title">' +
+          next.label +
+          "</span>" +
+          '<span class="nav-card__body">' +
+          next.description +
+          "</span></a>"
+        );
+      }
+
+      const main = document.querySelector("main.content");
+      if (main) main.appendChild(nav);
+    }
+
+    function scrollToPageTop(page, smooth) {
+      const firstSection = targetForHash(page.roots[0]);
+      if (!firstSection) return;
+
+      firstSection.scrollIntoView({
+        behavior: smooth ? "smooth" : "auto",
+        block: "start"
+      });
+    }
+
+    function showPage(pageId, hash, pushState) {
+      const page = pages.find(function (item) {
+        return item.id === pageId;
+      }) || pages[0];
+
+      topSections.forEach(function (section) {
+        section.hidden = section.dataset.pageId !== page.id;
+      });
+
+      document.querySelectorAll(".is-first-visible-header").forEach(function (el) {
+        el.classList.remove("is-first-visible-header");
+      });
+
+      const firstSection = topSections.find(function (sec) {
+        return !sec.hidden;
+      });
+
+      if (firstSection) {
+        let firstContent = firstSection.firstElementChild;
+        if (firstContent && firstContent.tagName.toLowerCase() === "h2") {
+          firstContent = firstContent.nextElementSibling;
+        }
+
+        if (firstContent && firstContent.tagName.toLowerCase() === "section") {
+          let innerContent = firstContent.firstElementChild;
+          if (innerContent && innerContent.tagName.toLowerCase().match(/^h[3-6]$/)) {
+            innerContent.classList.add("is-first-visible-header");
+          }
+        } else if (firstContent && firstContent.tagName.toLowerCase().match(/^h[3-6]$/)) {
+          firstContent.classList.add("is-first-visible-header");
+        }
+      }
+
+      if (titleBlock) titleBlock.hidden = page.id !== "home";
+      introNodes.forEach(function (node) {
+        node.hidden = page.id !== "home";
+      });
+
+      const navBrand = document.querySelector(".pipeline-nav__brand");
+      // Keep navBrand unchanged for desktop sidebar
+
+      const mobileHeaderTitle = document.querySelector(".mobile-header-title");
+      if (mobileHeaderTitle) {
+        mobileHeaderTitle.textContent = page.label;
+      }
+
+      workflowSidebar.querySelectorAll("a[data-page-id]").forEach(function (link) {
+        link.classList.toggle("is-active", link.dataset.pageId === page.id);
+      });
+      if (sidebar) sidebar.scrollTop = 0;
+
+      buildPageToc(page);
+      setRightTocActive();
+      renderPageNav(page);
+
+      if (pageToc) {
+        pageToc.hidden = page.id === "home";
+      }
+
+      const nextHash = hash || page.href;
+      if (pushState && history.pushState) history.pushState({ pageId: page.id }, "", nextHash);
+      window.setTimeout(function () {
+        if (page.id === "home") {
+          window.scrollTo({ top: 0, behavior: pushState ? "smooth" : "auto" });
+        } else if (nextHash === page.href) {
+          scrollToPageTop(page, pushState);
+        } else {
+          scrollToHash(nextHash);
+        }
+        setRightTocActive();
+      }, 20);
+    }
+
+    workflowSidebar.addEventListener("click", function (event) {
+      const link = event.target.closest("a[href^='#']");
+      if (!link) return;
+
+      const hash = link.getAttribute("href");
+      if (hash === "#title-block-header") return;
+
+      const page = pages.find(function (item) {
+        return item.id === link.dataset.pageId;
+      }) || pageForHash(hash);
+
+      if (!page) return;
+      event.preventDefault();
+      showPage(page.id, hash, true);
+    });
+
+    pageToc.addEventListener("click", function (event) {
+      const link = event.target.closest("a[href^='#']");
+      if (!link) return;
+
+      event.preventDefault();
+      const hash = link.getAttribute("href");
+      if (history.pushState) history.pushState({}, "", hash);
+      scrollToHash(hash);
+    });
+
+    document.addEventListener("click", function (event) {
+      const link = event.target.closest("a[href^='#']");
+      if (!link || workflowSidebar.contains(link) || pageToc.contains(link)) return;
+
+      const hash = link.getAttribute("href");
+      const page = pageForHash(hash);
+      if (!page) return;
+
+      event.preventDefault();
+      showPage(page.id, hash, true);
+    });
+
+    window.addEventListener("popstate", function () {
+      const page = pageForHash(location.hash) || pages[0];
+      showPage(page.id, location.hash || page.href, false);
+    });
+
+    document.addEventListener("scroll", setRightTocActive, { passive: true });
+
+    const initialPage = pageForHash(location.hash) || pages[0];
+    showPage(initialPage.id, location.hash || initialPage.href, false);
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    function openUrlInNewTab(url) {
+      const tab = window.open(url, "_blank", "noopener,noreferrer");
+      if (tab) return true;
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return true;
+    }
+
+    function openImageInNewTab(img) {
+      const src = img.currentSrc || img.src;
+      if (!src) return;
+
+      if (!src.startsWith("data:")) {
+        openUrlInNewTab(src);
+        return;
+      }
+
+      try {
+        const commaIndex = src.indexOf(",");
+        const header = src.slice(0, commaIndex);
+        const data = src.slice(commaIndex + 1);
+        const isBase64 = /;base64/i.test(header);
+        const mimeMatch = header.match(/^data:([^;,]+)/i);
+        const mime = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+        const bytes = isBase64
+          ? Uint8Array.from(atob(data), function (char) { return char.charCodeAt(0); })
+          : new TextEncoder().encode(decodeURIComponent(data));
+        const blob = new Blob([bytes], { type: mime });
+        const objectUrl = URL.createObjectURL(blob);
+        openUrlInNewTab(objectUrl);
+        window.setTimeout(function () {
+          URL.revokeObjectURL(objectUrl);
+        }, 120000);
+      } catch (error) {
+        console.warn("Could not open embedded image in a new tab:", error);
+        openUrlInNewTab(src);
+      }
+    }
+
+    const images = document.querySelectorAll(".cell-output-display img, .quarto-figure img, blockquote img");
+
+    images.forEach(function (img) {
+      if (img.parentElement && img.parentElement.classList.contains("img-zoom-wrapper")) return;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "img-zoom-wrapper";
+
+      img.parentNode.insertBefore(wrapper, img);
+      wrapper.appendChild(img);
+
+      const icon = document.createElement("a");
+      icon.href = "#";
+      icon.className = "img-zoom-icon";
+      icon.title = "Open image in new tab";
+      icon.setAttribute("aria-label", "Open image in new tab");
+      icon.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
+
+      icon.addEventListener("click", function (event) {
+        event.preventDefault();
+        openImageInNewTab(img);
+      });
+
+      wrapper.appendChild(icon);
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("details").forEach(function (details) {
+      const summary = details.querySelector("summary");
+      if (!summary || details.querySelector(":scope > .details-body")) return;
+
+      const body = document.createElement("div");
+      body.className = "details-body";
+
+      Array.from(details.children).forEach(function (child) {
+        if (child !== summary) body.appendChild(child);
+      });
+
+      details.appendChild(body);
+
+      if (details.open) {
+        body.style.maxHeight = body.scrollHeight + "px";
+        body.style.opacity = "1";
+        details.classList.add("is-open");
+      } else {
+        body.style.maxHeight = "0px";
+        body.style.opacity = "0";
+      }
+
+      summary.addEventListener("click", function (event) {
+        event.preventDefault();
+
+        if (!details.open) {
+          details.open = true;
+          details.classList.add("is-open");
+
+          requestAnimationFrame(function () {
+            body.style.maxHeight = body.scrollHeight + "px";
+            body.style.opacity = "1";
+          });
+        } else {
+          details.classList.remove("is-open");
+          body.style.maxHeight = "0px";
+          body.style.opacity = "0";
+
+          body.addEventListener("transitionend", function handler() {
+            if (body.style.maxHeight === "0px") details.open = false;
+            body.removeEventListener("transitionend", handler);
+          });
+        }
+      });
+    });
+  });
+</script>
+
+<script>
+  /* ═══════════════════════════════════════════════
+     MOBILE SIDEBAR DRAWER
+     ═══════════════════════════════════════════════ */
+  document.addEventListener("DOMContentLoaded", function () {
+    var sidebar = document.getElementById("workflow-sidebar");
+    if (!sidebar) return;
+
+    /* Create mobile header */
+    var mobileHeader = document.createElement("div");
+    mobileHeader.className = "mobile-header";
+
+    var headerTitle = document.createElement("span");
+    headerTitle.className = "mobile-header-title";
+    var activeLink = document.querySelector(".pipeline-nav a.is-active");
+    headerTitle.textContent = activeLink ? activeLink.textContent : "Genotype Imputation";
+    mobileHeader.appendChild(headerTitle);
+
+    /* Create hamburger button */
+    var menuBtn = document.createElement("button");
+    menuBtn.className = "mobile-menu-btn";
+    menuBtn.setAttribute("aria-label", "Open navigation menu");
+    menuBtn.innerHTML =
+      '<span class="hamburger-line"></span>' +
+      '<span class="hamburger-line"></span>';
+    mobileHeader.appendChild(menuBtn);
+
+    document.body.appendChild(mobileHeader);
+
+    /* Create backdrop */
+    var backdrop = document.createElement("div");
+    backdrop.className = "sidebar-backdrop";
+    document.body.appendChild(backdrop);
+
+    /* Dynamic header scroll */
+    window.addEventListener("scroll", function () {
+      if (window.scrollY > 20) {
+        mobileHeader.classList.add("is-scrolled");
+      } else {
+        mobileHeader.classList.remove("is-scrolled");
+      }
+    }, { passive: true });
+
+    function openDrawer() {
+      sidebar.classList.add("mobile-open");
+      menuBtn.classList.add("is-active");
+      backdrop.classList.add("is-visible");
+      document.body.classList.add("sidebar-open");
+      menuBtn.setAttribute("aria-label", "Close navigation menu");
+    }
+
+    function closeDrawer() {
+      sidebar.classList.remove("mobile-open");
+      menuBtn.classList.remove("is-active");
+      backdrop.classList.remove("is-visible");
+      document.body.classList.remove("sidebar-open");
+      menuBtn.setAttribute("aria-label", "Open navigation menu");
+    }
+
+    function isDrawerOpen() {
+      return sidebar.classList.contains("mobile-open");
+    }
+
+    menuBtn.addEventListener("click", function () {
+      if (isDrawerOpen()) {
+        closeDrawer();
+      } else {
+        openDrawer();
+      }
+    });
+
+    backdrop.addEventListener("click", closeDrawer);
+
+    /* Close drawer when a nav link is clicked */
+    sidebar.addEventListener("click", function (event) {
+      var link = event.target.closest("a[href^='#']");
+      if (link && window.innerWidth <= 980) {
+        closeDrawer();
+      }
+    });
+
+    /* Close drawer on Escape key */
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && isDrawerOpen()) {
+        closeDrawer();
+      }
+    });
+
+    /* Clean up state when resizing back to desktop */
+    var mql = window.matchMedia("(max-width: 980px)");
+    function handleResize(e) {
+      if (!e.matches && isDrawerOpen()) {
+        closeDrawer();
+      }
+    }
+    if (mql.addEventListener) {
+      mql.addEventListener("change", handleResize);
+    } else if (mql.addListener) {
+      mql.addListener(handleResize);
+    }
+  });
+</script>
+
+<script>
+  /* ═══════════════════════════════════════════════
+     THEME TOGGLE WIRING
+     Runs last so the sidebar (and its toggle buttons) already exist.
+     ═══════════════════════════════════════════════ */
+  document.addEventListener("DOMContentLoaded", function () {
+    var toggle = document.querySelector(".theme-toggle");
+    if (!toggle) return;
+
+    var buttons = toggle.querySelectorAll(".theme-btn");
+    var lightBtn = buttons[0];
+    var darkBtn = buttons[1];
+
+    function getStored() {
+      try {
+        var v = localStorage.getItem("theme");
+        if (v === "light" || v === "dark") return v;
+      } catch (e) { }
+      return null;
+    }
+
+    function sync(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      if (lightBtn) lightBtn.classList.toggle("active", theme === "light");
+      if (darkBtn) darkBtn.classList.toggle("active", theme === "dark");
+    }
+
+    function setTheme(theme) {
+      try { localStorage.setItem("theme", theme); } catch (e) { }
+      sync(theme);
+    }
+
+    sync(document.documentElement.getAttribute("data-theme") || "light");
+
+    if (lightBtn) lightBtn.addEventListener("click", function () { setTheme("light"); });
+    if (darkBtn) darkBtn.addEventListener("click", function () { setTheme("dark"); });
+
+    /* Follow system changes only when the user hasn't made an explicit choice */
+    if (window.matchMedia) {
+      var mq = window.matchMedia("(prefers-color-scheme: dark)");
+      var listener = function (e) {
+        if (!getStored()) sync(e.matches ? "dark" : "light");
+      };
+      if (mq.addEventListener) mq.addEventListener("change", listener);
+      else if (mq.addListener) mq.addListener(listener);
+    }
+  });
+</script>
