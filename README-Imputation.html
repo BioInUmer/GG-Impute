@@ -2754,6 +2754,9 @@ font-family: var(--font-sans);
 font-size: 0.9rem;
 font-weight: 450;
 }
+.pipeline-nav__brand.pipeline-nav__section-title {
+font-size: 1rem;
+}
 .pipeline-nav {
 display: grid;
 gap: 0.08rem;
@@ -4513,7 +4516,8 @@ align-items: center;
 body.is-home-page main.content {
 padding-bottom: 2rem !important;
 padding-top: 2rem !important;
-}</style>
+}
+</style>
 </head>
 
 <body class="quarto-light">
@@ -6853,8 +6857,7 @@ chrX    chrX</code></pre>
 
     const workflowMarkup =
       '<div class="workflow-sidebar__content">' +
-      '<a class="pipeline-nav__brand" href="#home">Genotype Imputation</a>' +
-      '<div class="pipeline-nav__section-title">Pipeline</div>' +
+      '<a class="pipeline-nav__brand pipeline-nav__section-title" href="#home">GG-Impute</a>' +
       '<ul class="pipeline-nav">' +
       pages
         .map(function (item) {
