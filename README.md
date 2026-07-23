@@ -13,7 +13,9 @@ I’ve documented every step and decision behind the pipeline here because I bel
 If you have any suggestions or ideas to improve this work, I would love to hear from you!
 
 <div align="left">
-  <img src="Imputation-pipeline.png" alt="Genotype imputation pipeline" width="825">
+  <img src="Imputation-pipeline.png" alt="Genotype imputation pipeline">
   <br>
-  <img src="Imputation-pipeline-caption.svg" alt="Genotype imputation pipeline. (A) Dataset pre-processing. (B) Variant-level quality control. (C) Sample-level quality control. (D) Merging of individually quality-controlled batches. (E) TOPMed imputation after verification of dataset’s format and compatibility using McCarthy tools. (F) Post-imputation quality control." width="825">
+  <sub>
+    <strong>Genotype imputation pipeline.</strong> <strong>(A)</strong> Dataset pre-processing. <strong>(B)</strong> Variant-level quality control. <strong>(C)</strong> Sample-level quality control. <strong>(D)</strong> Merging of individually quality-controlled batches. <strong>(E)</strong> TOPMed imputation after verification of dataset’s format and compatibility using McCarthy tools. <strong>(F)</strong> Post-imputation quality control.
+  </sub>
 </div>
