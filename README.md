@@ -8,10 +8,10 @@ I’ve documented every step and decision behind the pipeline here because I bel
 
 If you have any suggestions or ideas to improve this work, I would love to hear from you!
 
-![Genotype imputation pipeline](Imputation-pipeline.png)
-
-**Genotype imputation pipeline.** **(A)** Dataset pre-processing. **(B)** Variant-level quality control. **(C)** Sample-level quality control. **(D)** Merging of individually quality-controlled batches. **(E)** TOPMed imputation after verification of dataset’s format and compatibility using McCarthy tools. **(F)** Post-imputation quality control.
-
 ## Documentation
 
 View the complete documentation of the imputation pipeline at: [GG-Impute](https://bioinumer.github.io/GG-Impute/).
+
+![Genotype imputation pipeline](Imputation-pipeline.png)
+
+**Genotype imputation pipeline.** **(A)** Dataset pre-processing. **(B)** Variant-level quality control. **(C)** Sample-level quality control. **(D)** Merging of individually quality-controlled batches. **(E)** TOPMed imputation after verification of dataset’s format and compatibility using McCarthy tools. **(F)** Post-imputation quality control.
