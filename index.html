@@ -5378,14 +5378,12 @@ Since no sex is recorded in the <code>.fam</code> file, PLINK treats all 336 sam
 <p>Filters applied in this section, in order:</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 22%">
-<col style="width: 30%">
-<col style="width: 30%">
+<col style="width: 26%">
+<col style="width: 36%">
+<col style="width: 36%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Step</th>
 <th>Filter</th>
 <th>Threshold</th>
 <th>Rationale</th>
@@ -5394,36 +5392,30 @@ Since no sex is recorded in the <code>.fam</code> file, PLINK treats all 336 sam
 <tbody>
 <tr class="odd">
 <td>Chromosome scope</td>
-<td>Chromosome scope</td>
 <td>chr 1–22, X only</td>
 <td>Remove chr 0, Y, XY, MT</td>
 </tr>
 <tr class="even">
-<td>Biallelic only</td>
 <td>Biallelic only</td>
 <td><code>--min/max-alleles 2</code></td>
 <td>Imputation servers require biallelic loci</td>
 </tr>
 <tr class="odd">
 <td>Duplicate variants</td>
-<td>Duplicate variants</td>
 <td><code>--rm-dup exclude-mismatch</code></td>
 <td>Remove conflicting duplicate entries</td>
 </tr>
 <tr class="even">
-<td>Call-rate</td>
 <td>Call-rate</td>
 <td><code>--geno 0.02</code> (&lt; 98%)</td>
 <td>Remove poorly genotyped variants</td>
 </tr>
 <tr class="odd">
 <td>MAF</td>
-<td>MAF</td>
 <td><code>--maf 1e-3</code> (&lt; 0.1%)</td>
 <td>Remove very rare and monomorphic variants</td>
 </tr>
 <tr class="even">
-<td>HWE</td>
 <td>HWE</td>
 <td><code>--hwe 1e-6</code></td>
 <td>Remove variants deviating from equilibrium</td>
@@ -5581,13 +5573,11 @@ Full duplicate ID list: <code>cohort-05-plink2-v38.2-dup.rmdup.list</code></p>
 <p>Filters applied in this section, in order:</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 24%">
-<col style="width: 32%">
-<col style="width: 44%">
+<col style="width: 42%">
+<col style="width: 57%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Step</th>
 <th>Filter</th>
 <th>Threshold</th>
 </tr>
@@ -5595,21 +5585,17 @@ Full duplicate ID list: <code>cohort-05-plink2-v38.2-dup.rmdup.list</code></p>
 <tbody>
 <tr class="odd">
 <td>Call-rate</td>
-<td>Call-rate</td>
 <td><code>--mind 0.05</code> (&lt; 95%)</td>
 </tr>
 <tr class="even">
-<td>Heterozygosity</td>
 <td>Heterozygosity</td>
 <td>µ ± k·SD (Bonferroni-adjusted z-score)</td>
 </tr>
 <tr class="odd">
 <td>Sex discrepancies</td>
-<td>Sex discrepancies</td>
 <td>chrX F-statistic thresholds (F &lt; 0.2 female, F &gt; 0.8 male)</td>
 </tr>
 <tr class="even">
-<td>Ancestry outliers</td>
 <td>Ancestry outliers</td>
 <td>PCA against 1000 Genomes reference</td>
 </tr>
