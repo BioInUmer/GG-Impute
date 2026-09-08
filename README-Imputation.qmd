@@ -2,7 +2,7 @@
 title: "GG-Impute"
 subtitle: "Genotype Imputation Pipeline for GWAS"
 author: "MUHAMMAD UMER"
-date: "`r Sys.Date()`"
+date: "2026-07-03"
 format:
   html:
     toc: true
@@ -26,19 +26,19 @@ execute:
   <img src="Imputation-pipeline-dark.png" alt="Overview Figure" class="hero-img hero-img--dark">
 </div>
 <div class="hero-caption">
-  <strong>Genotype imputation pipeline.</strong> (A) Dataset pre-processing. (B) Variant-level quality control. (C) Sample-level quality control. (D) Merging of individually quality-controlled batches. (E) TOPMed imputation after verification of dataset’s format and compatibility using McCarthy tools. (F) Post-imputation quality control.
+  <strong>Genotype imputation pipeline.</strong> <strong>(A)</strong> Dataset pre-processing. <strong>(B)</strong> Variant-level quality control. <strong>(C)</strong> Sample-level quality control. <strong>(D)</strong> Merging of individually quality-controlled batches. <strong>(E)</strong> TOPMed imputation after verification of dataset’s format and compatibility using McCarthy tools. <strong>(F)</strong> Post-imputation quality control.
 </div>
-<p>This documentation describes a reproducible genotype imputation workflow: pre-imputation quality control on array genotypes, harmonization and merging of five study batchs, TOPMed imputation, and post-imputation filtering. The primary study batch started with <strong>336 samples</strong> and <strong>730,059 variants</strong>; after QC and imputation the merged upload contained <strong>2,113 samples</strong> and <strong>534,550 variants</strong>, yielding <strong>40,557,520</strong> imputed variants genome-wide.</p>
+<p>A reproducible workflow from <strong>~700K raw array genotypes</strong> to <strong>40+ million imputed variants</strong> across multiple batches with <strong>2,113 samples</strong> ready for genome-wide association testing.</p>
 
 </div>
 ## Pipeline Overview {#pipeline-overview-brief}
 
 This pipeline processes array genotypes through four stages:
 
-1. **Pre-imputation QC** — variant and sample filtering, ancestry checks, and McCarthy harmonization against the TOPMed reference panel
-2. **Merge** — harmonize chromosome naming and variant IDs across five numbered cohorts, then merge per chromosome
-3. **Imputation** — upload merged VCFs to the TOPMed Imputation Server (TOPMed r3 reference, GRCh38)
-4. **Post-imputation QC** — filter on MAF > 0 and imputation R² ≥ 0.3
+1. **Pre-imputation QC:** variant and sample filtering, ancestry checks, and McCarthy harmonization against the TOPMed reference panel.
+2. **Merge:** harmonize chromosomes and variant IDs across different batches (cohort-0*) and merge by chromosome.
+3. **Imputation:** upload merged VCFs to the TOPMed Imputation Server (TOPMed r3 reference, GRCh38).
+4. **Post-imputation QC:** filter on MAF > 0 and imputation R² ≥ 0.3.
 
 ### Prerequisites
 
@@ -48,9 +48,7 @@ Set a project root at the start of each session:
 export PROJECT_ROOT=/path/to/your/project
 ```
 
-**Required software:** PLINK 2, PLINK 1.9, bcftools, tabix, R (ggplot2), UCSC liftOver, McCarthy `HRC.pl`, aria2c (for large downloads).
-
-Plot assets referenced in this document live under `figures/` (relative to the rendered site).
+**Required software:** [PLINK 2](https://www.cog-genomics.org/plink/2.0/), [PLINK 1.9](https://www.cog-genomics.org/plink/1.9/), [bcftools](https://samtools.github.io/bcftools/), Bash, R, [UCSC liftOver](https://genome.ucsc.edu/cgi-bin/hgLiftOver) or [LocusLift](https://github.com/BioInUmer/LocusLift), [McCarthy tools](https://www.chg.ox.ac.uk/~wrayner/tools/), [aria2c](https://aria2.github.io/).
 
 ### Cohort Mapping
 
@@ -71,8 +69,7 @@ Plot assets referenced in this document live under `figures/` (relative to the r
 $PROJECT_ROOT/cohort-05/ 
 ├── 00-raw-genotypes/
 │   ├── metadata/
-│   │   ├── site-a-phenotype.csv
-│   │   └── site-b-phenotype.csv
+│   │   ├── file.csv
 │   ├── plink-v38-files/
 │   │   ├── filter-lists/
 │   │   ├── logs/
@@ -139,35 +136,43 @@ This section summarizes the workflow and parameters used throughout the pre-impu
 
 **Data Preparation & Cleaning**
 
-- **Samples Excluded:** 6 internal controls (`NA` array prefix) and 1 ambiguous duplicate IID were removed.
-- **Sex Updates:** Missing sex information was imputed from clinical phenotype files.
-- **Variant IDs:** All variant IDs standardized to `chr<N>:<pos>:<REF>:<ALT>`.
-- **Conversion:** Datasets were converted from PLINK1 to PLINK2 format.
+| Step | Action | Outcome |
+|------|--------|---------|
+| Sample exclusions | Remove microarray controls (`NA`s) and duplicate IID | 7 samples removed (6 controls + 1 duplicate) |
+| Sex updates | Fill missing sex information from `file.csv` clinical data | Missing values updated |
+| Variant IDs | Standardize IDs to `chr<N>:<pos>:<REF>:<ALT>` | Consistent variant naming |
+| Conversion | Convert PLINK1 datasets to PLINK2 | PLINK2 datasets ready for QC |
 
 **Variant Quality Control (SNP QC)**
 
-- **Chromosome Filter:** Retained only autosomal (Chr 1-22) and Chr X variants.
-- **Allelic Filter:** Confined variants to strictly biallelic loci (`--min-alleles 2 --max-alleles 2`).
-- **Duplicate Removal:** Excluded variants with mismatched duplicate IDs (`--rm-dup exclude-mismatch`).
-- **Missingness (Call-rate):** Filtered out variants with >2% missingness (`--geno 0.02`).
-- **Minor Allele Frequency (MAF):** Removed very rare or monomorphic alleles with MAF < 0.1% (`--maf 1e-3`).
-- **Hardy-Weinberg Equilibrium (HWE):** Excluded variants deviating from HWE with p-value < 1×10⁻⁶ (`--hwe 1e-6`).
+| Filter | Criteria |
+|--------|-----------|
+| Chromosome | Retain autosomes (Chr 1-22) and Chr X |
+| Alleles | Retain strictly biallelic variants |
+| Duplicates | Exclude mismatched duplicate IDs |
+| Missingness | Exclude variants with >2% missingness |
+| Minor allele frequency | Exclude very rare or monomorphic variants with MAF <0.1% |
+| Hardy-Weinberg equilibrium | Exclude variants with p < 1×10⁻⁶ |
 
 *Result:* 730,059 initial variants reduced to 532,037 high-quality variants.
 
 **Sample Quality Control**
 
-- **Missingness (Call-rate):** Samples with >5% missingness would be removed (`--mind 0.05`), though none failed.
-- **Heterozygosity:** 5 samples with excessive homozygous/heterozygous calls beyond `µ ± 4.17·SD` (Bonferroni-adjusted F coefficient) were removed.
-- **Sex Discrepancies:** Validated reported sex using chrX F-statistic. Thresholds: `F < 0.2` (female) and `F > 0.8` (male). 1 problematic mismatch was removed, 8 NA updated.
-- **Ancestry (PCA):** Conducted PCA against 1000 Genomes reference (after liftOver to GRCh37). Removed 14 genetic outliers based on Mahalanobis distance > 9.21 (χ² = 9.21, 99% CI).
+| Check | Criteria | Outcome |
+|-------|-----------|---------|
+| Missingness | Exclude samples with >5% missingness | None removed |
+| Heterozygosity | Exclude F coefficients outside the Bonferroni-adjusted `µ ± 4.17·SD` range | 5 samples removed |
+| Sex concordance | chrX F-statistic: `F < 0.2` (female), `F > 0.8` (male) | 1 mismatch removed; 8 missing values updated |
+| Ancestry (PCA) | project on 1000 Genomes and exclude outliers with Mahalanobis distance >9.21 (χ², 99% CI) | 14 samples removed |
 
-*Result:* 336 initial samples cleaned to 310 well-characterized samples. 
+*Result:* 336 initial samples cleaned to 310 samples.
 
 **Final Preparation & McCarthy QC**
 
-- **Monomorphic Check:** Any variants driven to monomorphic state post-sample removal were pruned (`--mac 1`).
-- **McCarthy QC (`HRC.pl`):** Validated strand, positions, ambiguity, and REF/ALT alleles against the TOPMed reference panel, generating final cleaned, per-chromosome `.vcf` files.
+| Step | Action |
+|------|--------|
+| Monomorphic check | Prune variants that became monomorphic after sample removal |
+| McCarthy QC (`HRC.pl`) | Validate strand, position, ambiguity, and REF/ALT alleles against imputation reference panel |
 
 *Final Output:* 310 samples and 494,949 variants ready for TOPMed imputation.
 
@@ -577,14 +582,14 @@ less -S cohort-05-plink2-v38.psam   # sample info
 
 Filters applied in this section, in order:
 
-| Step | Filter | Threshold | Rationale |
-|------|--------|-----------|-----------|
-| Chromosome scope | Chromosome scope | chr 1–22, X only | Remove chr 0, Y, XY, MT |
-| Biallelic only | Biallelic only | `--min/max-alleles 2` | Imputation servers require biallelic loci |
-| Duplicate variants | Duplicate variants | `--rm-dup exclude-mismatch` | Remove conflicting duplicate entries |
-| Call-rate | Call-rate | `--geno 0.02` (< 98%) | Remove poorly genotyped variants |
-| MAF | MAF | `--maf 1e-3` (< 0.1%) | Remove very rare and monomorphic variants |
-| HWE | HWE | `--hwe 1e-6` | Remove variants deviating from equilibrium |
+Filter | Threshold | Rationale |
+|--------|-----------|-----------|
+| Chromosome scope | chr 1–22, X only | Remove chr 0, Y, XY, MT |
+| Biallelic only | `--min/max-alleles 2` | Imputation servers require biallelic loci |
+| Duplicate variants | `--rm-dup exclude-mismatch` | Remove conflicting duplicate entries |
+| Call-rate | `--geno 0.02` (< 98%) | Remove poorly genotyped variants |
+| MAF | `--maf 1e-3` (< 0.1%) | Remove very rare and monomorphic variants |
+| HWE | `--hwe 1e-6` | Remove variants deviating from equilibrium |
 
 ::: minimal-note
 **QC order rationale**
@@ -709,12 +714,12 @@ plink2 --pfile cohort-05-plink2-v38.2-dup \
 
 Filters applied in this section, in order:
 
-| Step | Filter | Threshold |
-|------|--------|-----------|
-| Call-rate | Call-rate | `--mind 0.05` (< 95%) |
-| Heterozygosity | Heterozygosity | µ ± k·SD (Bonferroni-adjusted z-score) |
-| Sex discrepancies | Sex discrepancies | chrX F-statistic thresholds (F < 0.2 female, F > 0.8 male) |
-| Ancestry outliers | Ancestry outliers | PCA against 1000 Genomes reference |
+| Filter | Threshold |
+|--------|-----------|
+| Call-rate | `--mind 0.05` (< 95%) |
+| Heterozygosity | µ ± k·SD (Bonferroni-adjusted z-score) |
+| Sex discrepancies | chrX F-statistic thresholds (F < 0.2 female, F > 0.8 male) |
+| Ancestry outliers | PCA against 1000 Genomes reference |
 
 ```bash
 # Set up working directory for sample QC
@@ -754,6 +759,7 @@ plink2 --pfile cohort-05-plink2-v38.1-call --het --out rates
 **`.het` file columns:**
 
 | Column | Description |
+|---|---|
 | `E(HOM)` | Expected homozygote count |
 | `OBS_CT` | Number of non-missing variants used |
 | `F` | Method-of-moments inbreeding coefficient |
@@ -836,6 +842,7 @@ plink2 --pfile cohort-05-plink2-v38.1-call \
 PLINK2's `--check-sex` estimates sex from the chrX inbreeding F-statistic and compares it against the reported sex. Expected ranges:
 
 | Sex | chrX F | Genotype |
+|---|---|---|
 | Male | ≈ 1 | Hemizygous (XY) |
 | Female | ≈ 0 | Heterozygous (XX) |
 
@@ -1042,11 +1049,25 @@ mkdir PCA && cd PCA
 
 #### Liftover to GRCh37
 
-The 1000GP PLINK files use GRCh37. Since our dataset has ~510k variants versus ~83M in 1000GP, it is far more efficient to liftover our data. [`LocusLift`](https://github.com/BioInUmer/locuslift) or `UCSC liftOver tool` could be used for this purpose:
+The 1000GP PLINK files use GRCh37. Since our dataset has ~510k variants versus ~83M in 1000GP, it is far more efficient to liftover our data than the reference panel.
+
+::: resource-callout
+[LocusLift](https://github.com/BioInUmer/locuslift){target="_blank"}
+
+This is a script I developed to automate liftover for PLINK and VCF files to any build.
+
+
+**In a nutshell...**
+
+The repo provides all the files needed to run the liftover process (chains, scripts, software, etc.). The script verifies before lifting, so you don't accidentally lift to the wrong build and provides a detailed log of the process.
+:::
+
+Below is the description of the manual UCSC `liftOver` approach that was originally used for `cohort-05`. The same steps are automated by [LocusLift](https://github.com/BioInUmer/locuslift){target="_blank"}.
 
 **UCSC liftOver usage:**
 
 | Argument | Description |
+|---|---|
 | `<input_file>` | UCSC `.bed` text file (not PLINK binary) with genomic coordinates |
 | `<chain_file>` | Build conversion map (`hg38ToHg19.over.chain.gz`) |
 | `<output_file>` | Lifted `.bed` output |
@@ -1129,6 +1150,7 @@ PLINK2's `--extract` is used here instead of a scripted set-intersection because
 The common 1000GP variants are not pre-filtered. Three filters are applied before PCA to ensure PCs reflect ancestry rather than genotyping noise or LD structure:
 
 | Flag | Threshold | Rationale |
+|---|---|---|
 | `--maf 0.01` | MAF < 1% | Rare variants reflect recent family-level relatedness, not continental structure |
 | `--indep-pairwise 200kb 0.2` | LD r² > 0.2 | Ensures SNPs contribute independently to PCs |
 
@@ -1165,6 +1187,7 @@ plink2 --pfile 1kg-plink2-v37.3-final \
 ```
 
 | Flag | Effect |
+|---|---|
 | `--freq counts --ac-founders` | Computes allele frequencies from founders only → `.acount` file for centering projections |
 | `--pca allele-wts` | Outputs per-variant PC weights → `.eigenvec.allele` (enables projection of new samples) |
 | `vcols=chrom,ref,alt` | Adds REF/ALT columns to weights file to prevent axis-inversion artefacts |
@@ -1172,13 +1195,13 @@ plink2 --pfile 1kg-plink2-v37.3-final \
 ::: minimal-note
 **Note**
 
-The `.eigenvec` sample coordinate file is not used; both datasets are projected from scratch using the allele weights (see below: [Project Both Datasets](#project-both-datasets)).
+The `.eigenvec` sample coordinate file is not used; both datasets are projected from scratch using the allele weights.
 :::
 
 
 #### Project Both Datasets
 
-Both datasets are projected using the **same** 1000GP allele weights and allele frequencies — a "double-projection" strategy that ensures both are on the same scale without requiring post-hoc axis alignment.
+Both datasets are projected using the **same** 1000GP allele weights and allele frequencies. This is like a "double-projection", which ensures that both datasets (Cohort 05 and 1000G) are on the same scale without requiring post-hoc axis alignment.
 
 ```bash
 # Project 1000 Genomes (reference)
@@ -1195,6 +1218,7 @@ plink2 --pfile cohort-05-plink2-v37.3-final \
 ```
 
 | Flag | Effect |
+|---|---|
 | `--read-freq` | Centers data using 1000GP founder frequencies (prevents origin shift) |
 | `--score 2 5 header-read` | Maps alleles via header (col 2: ID, col 5: A1) |
 | `no-mean-imputation` | Ignores missing genotypes rather than imputing to mean (prevents pull towards plot centre) |
@@ -1207,7 +1231,7 @@ plink2 --pfile cohort-05-plink2-v37.3-final \
 
 #### Plot PCA
 
-PC1 vs PC2 and PC1 vs PC3 are plotted to visualize cohort ancestry relative to 1000GP super-populations. Script: `scripts/pca.R`.
+PC1 vs PC2 and PC1 vs PC3 are plotted to visualize cohort ancestry relative to 1000GP super-populations.
 
 > ![PCs Parallel](../plots/parallel-10pcs.svg)
 >
@@ -1228,14 +1252,24 @@ PC1 vs PC2 and PC1 vs PC3 are plotted to visualize cohort ancestry relative to 1
 ::: resource-callout
 [PCAutliers](https://bioinumer.github.io/PCAutliers/){target="_blank"}
 
-A more robust alternative for outlier detection across all merged study samples. The workflow through the PCA plot is the same; only the outlier criteria differ.
+This repo explains the outlier detection pipeline & rationale, and includes the scripts for making all the PCA plots.
+
+**Brief Overview of PCAutliers pipeline:**  
+Once our dataset is projected onto the 1000GP PCA space, we determine the ancestry of our samples (European). To keep homogeneity in our cohort, we aim to identify genetic outliers relative to our sample set, rather than to an ancestry of 1000GP. To do so, we use **Mahalanobis distance** to account for the elliptical shape of the PCA clusters. 
+
+We calculate the distance of each sample from the cohort's centroid and exclude outliers using a highly permissive, threshold (Interquartile Range):
+
+\begin{equation}
+\text{Threshold} = Q_3 + 9 \times \text{IQR}
+\end{equation}
+
+Where $Q_3$ is the third quartile and $\text{IQR}$ is the interquartile range ($Q_3 - Q_1$). This approach ensures that only true, extreme outliers are removed.
 :::
 
-**Method — Mahalanobis Distance:** Euclidean distance assumes a circular cluster boundary and fails for PCA data, where the EUR cluster forms an elongated ellipse (PC1 captures more variance than PC2). This leads to false positives at the ellipse tips and false negatives for admixed samples inside the circle.
+Below is the description of an alternative approach that was originally used for `cohort-05` during its initial quality control. While less robust than the IQR method, it serves as the historical record for this batch. Note that after all study batches were merged, the combined dataset underwent a final outlier filtering step using the full [PCAutliers](https://bioinumer.github.io/PCAutliers/){target="_blank"} pipeline.
 
-Mahalanobis distance accounts for the cluster's shape and internal correlations, rescaling PCA space so the EUR cluster is circular. Distance is measured in standard deviations from the centroid, conforming to the actual cluster geometry.
-
-**Threshold:** The squared Mahalanobis distance follows a **χ² distribution** with df equal to the number of PCs used (df = 2). A **99% confidence cutoff** (χ² = 9.21) is applied — samples exceeding this are classified as non-European.
+**χ²-based Threshold**  
+The squared Mahalanobis distance follows a **χ² distribution** with degrees of freedom (df) equal to the number of principal components used ($\text{df} = 2$). A **99% confidence cutoff** ($\chi^2 = 9.21$) was applied. Any samples exceeding this critical value were classified as non-European and excluded.
 
 > ![Chi-Square Distribution](../plots/chi2-distribution.svg)
 >
@@ -1500,10 +1534,11 @@ for i in {1..23}; do
     bcftools view -S ^../../dup-ids.txt -Ou -o "cohort-02-chr${i}.vcf"
 done
 
-rm taga-updated*
+rm cohort-02-updated*
 ```
 
 | Flag | Effect |
+|---|---|
 | `-S ^<file>` | Exclude samples listed in the specified file |
 | `-Ou` | Output uncompressed `.vcf` format (speeds up intermediate steps) |
 | `-o` | Output file name |
@@ -1581,7 +1616,7 @@ chrX    chrX
 Update `##contig` headers in cohorts with outdated definitions:
 
 ```bash
-# Execute within cohort-03/vcf-files & 02-tabs3-2023/vcf-files
+# Execute within cohort-N/vcf-files
 for i in {1..23}; do
     sed -i "s/^##contig=<ID=${i}\b/##contig=<ID=chr${i}/" *_chr${i}.vcf
 done
@@ -1632,6 +1667,7 @@ done
 ```
 
 | Command | Effect |
+|---|---|
 | `merge` | Merges the vcf files from each cohort |
 | `tabix -p vcf` | Generates a `.tbi` index (not required for TOPMed imputation but good practice) |
 
@@ -1687,6 +1723,7 @@ aria2c -x 8 -s 8 -k 100M -j 3 --continue=true --max-tries=10 --retry-wait=30 --i
 ```
 
 | Flag | Effect |
+|---|---|
 | `-x 8` | Maximum number of connections per file |
 | `-s 8` | Maximum number of files to download at once |
 | `-k 100M` | Minimum chunk size |
