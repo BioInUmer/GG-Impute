@@ -816,11 +816,11 @@ write.table(samples_to_exclude, "samples-by-het.txt",
             col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
 ```
 
-> ![QQ Plot of F Coefficient](../plots/qqnorm-het.svg)
+> ![QQ Plot of F Coefficient](plots/qqnorm-het.svg)
 >
 > **Fig. 1:** *QQ plot assessing the normality of the inbreeding F coefficient distribution across all samples. The line represents the theoretical normal distribution.*
 
-> ![Per-sample F Coefficient](../plots/per-sample-F-het.svg)
+> ![Per-sample F Coefficient](plots/per-sample-F-het.svg)
 >
 > **Fig. 2:** *Scatter plot of per-sample F coefficients. Dashed red lines denote the Bonferroni-adjusted exclusion thresholds. Upper threshold: high homozygosity; Lower threshold: high heterozygosity*
 
@@ -947,7 +947,7 @@ p1 <- ggplot(outliers, aes(x = Index, y = F, color = Reported_Sex)) +
 ggsave("plots/sexcheck-labeled.svg", plot = p1, width = 9, height = 7, dpi = 1200)
 ```
 
-> ![Sexcheck Labeled](../plots/sexcheck-labeled.svg)
+> ![Sexcheck Labeled](plots/sexcheck-labeled.svg)
 >
 > **Fig. 3:** *ChrX F-statistic distribution highlighting problematic samples. Samples with ambiguous or mismatched sex are labeled in black, and those with unknown reported sex are in gray.*
 
@@ -1233,15 +1233,15 @@ plink2 --pfile cohort-05-plink2-v37.3-final \
 
 PC1 vs PC2 and PC1 vs PC3 are plotted to visualize cohort ancestry relative to 1000GP super-populations.
 
-> ![PCs Parallel](../plots/parallel-10pcs.svg)
+> ![PCs Parallel](plots/parallel-10pcs.svg)
 >
 > **Fig. 4:** *Parallel coordinates plot showing the first 10 principal components (PCs) computed against the 1000 Genomes Project reference panel, illustrating cohort projection.*
 
-> ![PCA Plot](../plots/pca-pc1vs2.svg)
+> ![PCA Plot](plots/pca-pc1vs2.svg)
 >
 > **Fig. 5:** *Scatter plot of PC1 versus PC2 comparing the cohort to the 1000 Genomes Project reference super-populations to identify ancestry clusters.*
 
-> ![PCA Plot](../plots/pca-pc1vs3.svg)
+> ![PCA Plot](plots/pca-pc1vs3.svg)
 >
 > **Fig. 6:** *Scatter plot of PC1 versus PC3 providing further separation of ancestry clusters to visualize genetic relationships.*
 
@@ -1271,11 +1271,11 @@ Below is the description of an alternative approach that was originally used for
 **χ²-based Threshold**  
 The squared Mahalanobis distance follows a **χ² distribution** with degrees of freedom (df) equal to the number of principal components used ($\text{df} = 2$). A **99% confidence cutoff** ($\chi^2 = 9.21$) was applied. Any samples exceeding this critical value were classified as non-European and excluded.
 
-> ![Chi-Square Distribution](../plots/chi2-distribution.svg)
+> ![Chi-Square Distribution](plots/chi2-distribution.svg)
 >
 > **Fig. 7:** *Empirical Mahalanobis distance distribution for the EUR cluster overlaid on the theoretical χ² distribution (df = 2).*
 
-> ![Chi-Square Table](../plots/chi2-table.png)
+> ![Chi-Square Table](plots/chi2-table.png)
 >
 > **Fig. 8:** *χ² critical values at selected confidence levels. Source: [University of Arizona](https://share.google/YwOoCpuRVFNOZFipu).*
 
@@ -1286,11 +1286,11 @@ The squared Mahalanobis distance follows a **χ² distribution** with degrees of
 | Site A (prefix B) | 3 |
 | Site B (prefix A) | 11 |
 
-> ![Outliers in PCA](../plots/pca-outliers.svg)
+> ![Outliers in PCA](plots/pca-outliers.svg)
 >
 > **Fig. 9:** *Samples exceeding the Mahalanobis distance threshold highlighted in the PCA plot.*
 
-> ![Mahalanobis Distance](../plots/maha-threshold.svg)
+> ![Mahalanobis Distance](plots/maha-threshold.svg)
 >
 > **Fig. 10:** *Per-sample Mahalanobis distance. Dashed line = χ² threshold (9.21).*
 
