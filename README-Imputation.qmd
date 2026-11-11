@@ -21,13 +21,13 @@ execute:
 
 <div id="home">
 
-<div class="hero-figure">
-  <img src="Imputation-pipeline.png" alt="Overview Figure" class="hero-img hero-img--light">
-  <img src="Imputation-pipeline-dark.png" alt="Overview Figure" class="hero-img hero-img--dark">
-</div>
-<div class="hero-caption">
-  <strong>Genotype imputation pipeline.</strong> <strong>(A)</strong> Dataset pre-processing. <strong>(B)</strong> Variant-level quality control. <strong>(C)</strong> Sample-level quality control. <strong>(D)</strong> Merging of individually quality-controlled batches. <strong>(E)</strong> TOPMed imputation after verification of dataset’s format and compatibility using McCarthy tools. <strong>(F)</strong> Post-imputation quality control.
-</div>
+<figure class="hero-figure">
+  <img src="Imputation-pipeline.png" alt="Overview of the genotype imputation pipeline" class="hero-img hero-img--light">
+  <img src="Imputation-pipeline-dark.png" alt="Overview of the genotype imputation pipeline" class="hero-img hero-img--dark">
+  <figcaption class="hero-caption">
+    <strong>Genotype imputation pipeline.</strong> <strong>(A)</strong> Dataset pre-processing. <strong>(B)</strong> Variant-level quality control. <strong>(C)</strong> Sample-level quality control. <strong>(D)</strong> Merging of individually quality-controlled batches. <strong>(E)</strong> TOPMed imputation after verification of dataset’s format and compatibility using McCarthy tools. <strong>(F)</strong> Post-imputation quality control.
+  </figcaption>
+</figure>
 <p>A reproducible workflow from <strong>~700K raw array genotypes</strong> to <strong>40+ million imputed variants</strong> across multiple batches with <strong>2,113 samples</strong> ready for genome-wide association testing.</p>
 
 </div>
@@ -1837,3 +1837,5 @@ rm -r ../00-raw
 ```
 
 The resulting `vcf/` directory contains the final imputed variants ready for subsetting by target cohort (`cohort-01` through `cohort-05`) and executing GWAS.
+
+For any doubts or suggestions, you can contact me via [Email](muh.umer.h@gmail.com) or [LinkedIn](https://www.linkedin.com/in/muhammad-umer-hk/).

@@ -800,13 +800,14 @@ blockquote blockquote {
 
 .resource-callout {
   max-width: 40rem;
-  margin: 2.25rem 2.5rem 2rem;
-  padding: 1.5rem 0.25rem;
-  text-align: center;
+  margin: 2.25rem auto 2rem;
+  padding: 1.5rem 1.6rem;
+  text-align: left;
   border: 0;
-  border-radius: 0;
+  border-radius: var(--radius);
   background: color-mix(in srgb, var(--color-orange-light) 3.5%, transparent);
   font-family: var(--font-vignette);
+  box-sizing: border-box;
 }
 
 .resource-callout a {
@@ -825,8 +826,8 @@ blockquote blockquote {
 }
 
 .resource-callout p {
-  margin: 0 auto;
-  max-width: 34rem;
+  margin: 0;
+  max-width: none;
   color: var(--color-muted);
   font-family: var(--font-vignette);
   font-size: 0.9rem;
@@ -843,6 +844,28 @@ blockquote blockquote {
   font-family: var(--font-vignette-display);
   font-weight: 700;
   letter-spacing: -0.015em;
+}
+
+@media (max-width: 980px) {
+  .resource-callout {
+    margin: 1.75rem 0 1.5rem;
+    padding: 1.25rem 1.15rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .resource-callout {
+    margin: 1.5rem 0 1.25rem;
+    padding: 1.15rem 1rem;
+  }
+
+  .resource-callout a {
+    font-size: 1.12rem;
+  }
+
+  .resource-callout p {
+    font-size: 0.88rem;
+  }
 }
 
 code,
@@ -1999,6 +2022,13 @@ body.sidebar-open {
    MOBILE (≤ 640px) — tighter spacing
    ═══════════════════════════════════════════════ */
 @media (max-width: 640px) {
+  :root {
+    --figure-image-padding: 0.35rem;
+    --figure-caption-width: 100%;
+    --figure-space-before: 2rem;
+    --figure-caption-space-after: 2rem;
+  }
+
   body {
     font-size: 14px;
     line-height: 1.62;
@@ -2006,6 +2036,29 @@ body.sidebar-open {
 
   main.content {
     padding: calc(56px + 1.25rem + env(safe-area-inset-top, 0px)) 1rem calc(5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Use more of the screen width for figures without hard edge flush */
+  figure:not(.hero-figure),
+  .quarto-figure,
+  .cell-output-display,
+  blockquote:has(img) {
+    width: calc(100% + 0.7rem);
+    max-width: none;
+    margin-left: -0.35rem !important;
+    margin-right: -0.35rem !important;
+  }
+
+  blockquote:has(img) figure img,
+  blockquote:has(img) p>img,
+  blockquote:has(img) p>.img-zoom-wrapper,
+  figure:not(.hero-figure)>img,
+  figure:not(.hero-figure)>.img-zoom-wrapper,
+  .quarto-figure>img,
+  .quarto-figure>.img-zoom-wrapper,
+  .cell-output-display>img,
+  .cell-output-display>.img-zoom-wrapper {
+    padding: var(--figure-image-padding) !important;
   }
 
   body.is-home-page main.content {
@@ -2415,23 +2468,38 @@ body.sidebar-open {
 .hero-figure {
   display: flex;
   flex-direction: column;
-  font-size: 0;
-  line-height: 0;
-  width: fit-content;
-  max-width: 80%;
-  margin: 0 auto 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto 2rem !important;
   padding: 0;
+  border: none;
   border-radius: 0;
   background: transparent;
+  overflow: visible;
 }
 
 .hero-caption {
-  font-size: 0.9em;
+  width: 100%;
+  max-width: var(--figure-caption-width);
+  margin: var(--figure-caption-gap) auto 0;
+  padding: 0.65rem 0.85rem;
+  background: var(--color-figure-bg);
+  border: 1px solid var(--color-scaffold-border);
+  border-radius: var(--radius);
   color: var(--color-muted);
-  text-align: center;
-  max-width: 80%;
-  margin: 0 auto 2rem;
-  line-height: 1.5;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: var(--figure-caption-size);
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+  text-align: justify;
+  text-align-last: center;
+}
+
+.hero-caption strong {
+  color: var(--color-ink);
+  font-weight: 700;
 }
 
 .hero-figure p {
@@ -2441,33 +2509,59 @@ body.sidebar-open {
 
 .hero-img {
   display: block;
+  width: 100%;
   max-width: 100%;
   height: auto;
-  margin-inline: auto;
+  margin: 0;
+  padding: var(--figure-image-padding);
+  background: #101216 !important;
+  border: 1px solid var(--color-scaffold-border);
+  border-radius: var(--radius);
+  box-sizing: border-box;
+}
+
+html[data-theme="light"] .hero-img {
+  background: #ffffff !important;
 }
 
 .hero-img--dark {
-  display: none;
+  display: none !important;
 }
 
 html[data-theme="dark"] .hero-img--light {
-  display: none;
+  display: none !important;
 }
 
 html[data-theme="dark"] .hero-img--dark {
-  display: block;
+  display: block !important;
+}
+
+@media (max-width: 980px) {
+  .hero-caption {
+    text-align: left;
+    text-align-last: left;
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
   .hero-figure {
     max-width: 100%;
+    width: 100%;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .hero-img {
+    padding: 0.4rem;
   }
 
   .hero-caption {
     max-width: 100%;
-    text-align: left;
-    font-size: 0.85em;
-    margin-bottom: 1.35rem;
+    font-size: 0.72rem;
+    padding: 0.55rem 0.7rem;
+    margin-bottom: 0;
   }
 }
 
