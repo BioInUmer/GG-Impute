@@ -173,7 +173,10 @@
       const hoverRail = document.querySelector('.hook-rail--hover');
       const activeRail = document.querySelector('.hook-rail--active');
       const navLinks = Array.from(document.querySelectorAll('.pipeline-nav a'));
-      
+      const canHover =
+        window.matchMedia &&
+        window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
       let hoverIndex = null;
       let activeIndex = -1;
       const CORNER = 6;
@@ -181,7 +184,7 @@
       updateHookSidebarRails = function() {
         const activeLink = document.querySelector('.pipeline-nav a.is-active');
         activeIndex = navLinks.indexOf(activeLink);
-        
+
         let activeY = null;
         if (activeIndex >= 0 && activeLink) {
           activeY = activeLink.offsetTop + activeLink.offsetHeight / 2;
@@ -198,6 +201,11 @@
           activeRail.style.opacity = 0;
         }
 
+        if (!canHover) {
+          if (hoverRail) hoverRail.style.opacity = 0;
+          return;
+        }
+
         let hoverY = null;
         if (hoverIndex !== null && hoverIndex >= 0) {
           const hoverLink = navLinks[hoverIndex];
@@ -210,9 +218,9 @@
           hoverRail.style.opacity = 1;
           const hoverFrom = (activeY !== null && hoverY <= activeY) ? Math.max(0, hoverY - CORNER) : (activeY || 0);
           const heightHover = Math.max(0, hoverY - CORNER);
-          
+
           const hoverPath = hoverRail.querySelector('.hook-rail__path');
-          
+
           if (hoverPath) {
              hoverPath.setAttribute('d', 'M 1 ' + hoverFrom + ' L 1 ' + heightHover + ' a 6 6 0 0 0 6 6 H 14');
           }
@@ -221,12 +229,17 @@
         }
       };
 
+      window.__updateHookSidebarRails = updateHookSidebarRails;
+
       navLinks.forEach(function(link, index) {
-        link.addEventListener('mouseenter', function() {
-          hoverIndex = index;
-          updateHookSidebarRails();
-        });
+        if (canHover) {
+          link.addEventListener('mouseenter', function() {
+            hoverIndex = index;
+            updateHookSidebarRails();
+          });
+        }
         link.addEventListener('focus', function() {
+          if (!canHover) return;
           hoverIndex = index;
           updateHookSidebarRails();
         });
@@ -234,6 +247,11 @@
           hoverIndex = null;
           updateHookSidebarRails();
         });
+        /* Clear sticky :hover ghost state after a tap */
+        link.addEventListener('touchend', function() {
+          hoverIndex = null;
+          window.setTimeout(updateHookSidebarRails, 0);
+        }, { passive: true });
       });
 
       if (container) {
@@ -249,11 +267,20 @@
         });
         ro.observe(container);
       }
-      
+
       updateHookSidebarRails();
     }
-    
+
     setupHookSidebar();
+
+    /* Wrap wide tables for mobile horizontal scroll */
+    document.querySelectorAll('main.content table').forEach(function (table) {
+      if (table.closest('.table-scroll')) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'table-scroll';
+      table.parentNode.insertBefore(wrap, table);
+      wrap.appendChild(table);
+    });
 
 
     const pageToc = document.createElement("aside");
@@ -745,12 +772,23 @@
       }
     }, { passive: true });
 
+    function refreshHookRails() {
+      if (typeof window.__updateHookSidebarRails === "function") {
+        window.__updateHookSidebarRails();
+      }
+    }
+
     function openDrawer() {
       sidebar.classList.add("mobile-open");
       menuBtn.classList.add("is-active");
       backdrop.classList.add("is-visible");
       document.body.classList.add("sidebar-open");
       menuBtn.setAttribute("aria-label", "Close navigation menu");
+      /* Recalculate after drawer slide + layout settle */
+      window.requestAnimationFrame(function () {
+        refreshHookRails();
+        window.setTimeout(refreshHookRails, 360);
+      });
     }
 
     function closeDrawer() {

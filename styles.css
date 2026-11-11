@@ -1055,6 +1055,19 @@ details>.details-body {
   transition: max-height 0.25s ease, opacity 0.2s ease;
 }
 
+.table-scroll {
+  max-width: 100%;
+  margin: 1.6rem 0 1.8rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  border-radius: var(--radius);
+}
+
+.table-scroll > table {
+  margin: 0 !important;
+}
+
 table {
   width: auto;
   max-width: 100%;
@@ -1396,6 +1409,10 @@ pre:hover .code-copy-button {
     opacity: 1 !important;
     pointer-events: auto !important;
   }
+
+  .img-zoom-icon {
+    opacity: 0.9;
+  }
 }
 
 /* Suppress Quarto's default tooltip */
@@ -1448,10 +1465,10 @@ pre:hover .code-copy-button {
   top: 0;
   left: 0;
   right: 0;
-  height: 56px;
+  height: calc(56px + env(safe-area-inset-top, 0px));
   background: var(--color-bg);
   border-bottom: 1px solid var(--color-line);
-  padding: 0 1rem 0 1.25rem;
+  padding: env(safe-area-inset-top, 0px) max(0.75rem, env(safe-area-inset-right, 0px)) 0 max(1rem, env(safe-area-inset-left, 0px));
   z-index: 96;
   transition: background 0.3s ease,
     border-color 0.3s ease,
@@ -1469,21 +1486,29 @@ pre:hover .code-copy-button {
   font-weight: 550;
   color: var(--color-ink);
   letter-spacing: -0.01em;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 0.75rem;
 }
 
 .mobile-menu-btn {
   display: flex;
   position: relative;
   z-index: 102;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  flex-shrink: 0;
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
@@ -1611,7 +1636,7 @@ body.sidebar-open {
   #workflow-sidebar {
     position: fixed !important;
     inset: 0 auto 0 0;
-    width: 325px !important;
+    width: min(325px, calc(100vw - 56px)) !important;
     max-width: none;
     z-index: 100;
     transform: translateX(-100%);
@@ -1621,7 +1646,9 @@ body.sidebar-open {
     border-left: none !important;
     border-bottom: none !important;
     overflow-y: auto;
-    padding-top: 3rem !important;
+    padding-top: calc(1.25rem + env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+    padding-left: max(1rem, env(safe-area-inset-left, 0px)) !important;
   }
 
   #workflow-sidebar.mobile-open {
@@ -1643,11 +1670,44 @@ body.sidebar-open {
     transform: translateX(0);
   }
 
+  .pipeline-nav {
+    gap: 0.2rem;
+  }
+
+  .pipeline-nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0.7rem 0.75rem 0.7rem 1.4rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pipeline-nav a:active {
+    background: var(--color-hover-bg);
+  }
+
+  .pipeline-nav__brand {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   main.content {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 auto !important;
-    padding: 5rem 1.25rem 6rem !important;
+    padding: calc(56px + 1.5rem + env(safe-area-inset-top, 0px)) 1.25rem calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Home: don't fight the fixed header with vertical centering */
+  body.is-home-page #quarto-content {
+    align-items: flex-start !important;
+  }
+
+  body.is-home-page main.content {
+    padding-top: calc(56px + 1.25rem + env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   #title-block-header,
@@ -1656,10 +1716,34 @@ body.sidebar-open {
     padding-bottom: 0.75rem;
   }
 
+  body.is-home-page #title-block-header,
+  body.is-home-page .quarto-title-block {
+    margin-top: 0.5rem !important;
+  }
+
   /* Prevent headings from hiding behind the fixed hamburger button */
   section,
   .anchored {
-    scroll-margin-top: 5rem;
+    scroll-margin-top: calc(56px + 1.25rem + env(safe-area-inset-top, 0px));
+  }
+
+  /* Narrow screens: avoid justified caption rivers */
+  figure>p,
+  .quarto-figure>p,
+  .cell-output-display>p,
+  blockquote:has(img) .quarto-figure+p,
+  blockquote:has(img) figure+p,
+  blockquote:has(img) p+p,
+  figcaption,
+  .figure-caption,
+  .quarto-figure-caption {
+    text-align: left;
+    text-align-last: left;
+  }
+
+  .page-nav .nav-card {
+    min-height: 44px;
+    padding: 0.75rem 0.85rem;
   }
 
   h1,
@@ -1742,9 +1826,9 @@ body.sidebar-open {
   }
 
   .title {
-    font-size: clamp(3.6rem, 11vw, 5rem) !important;
+    font-size: clamp(3.2rem, 11vw, 5rem) !important;
     margin-bottom: 0.45rem !important;
-    white-space: nowrap;
+    white-space: normal;
   }
 
   .subtitle {
@@ -1916,41 +2000,47 @@ body.sidebar-open {
    ═══════════════════════════════════════════════ */
 @media (max-width: 640px) {
   body {
-    font-size: 12.5px;
-    line-height: 1.58;
+    font-size: 14px;
+    line-height: 1.62;
   }
 
   main.content {
-    padding: 5rem 0.85rem 5rem !important;
+    padding: calc(56px + 1.25rem + env(safe-area-inset-top, 0px)) 1rem calc(5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  body.is-home-page main.content {
+    padding-top: calc(56px + 1rem + env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   /* ── Headings ── */
   .title {
     max-width: none;
-    font-size: clamp(3rem, 15vw, 4rem) !important;
+    font-size: clamp(2.6rem, 12vw, 3.6rem) !important;
+    white-space: normal;
   }
 
   .subtitle {
-    font-size: clamp(1rem, 4vw, 1.2rem);
-    line-height: 1.3;
+    font-size: clamp(1rem, 4vw, 1.15rem);
+    line-height: 1.35;
     margin-top: 0.25rem;
   }
 
   h1:not(.title) {
-    font-size: 1.85rem !important;
+    font-size: 1.75rem !important;
   }
 
   h2 {
-    font-size: 1.55rem !important;
+    font-size: 1.45rem !important;
   }
 
   h3 {
-    font-size: 1.2rem !important;
+    font-size: 1.18rem !important;
     margin: 1.8rem 0 0.5rem !important;
   }
 
   h4 {
-    font-size: 1.0rem !important;
+    font-size: 1.02rem !important;
     margin: 1.6rem 0 0.4rem !important;
   }
 
@@ -1962,11 +2052,11 @@ body.sidebar-open {
   /* ── Body text ── */
   p {
     text-align: left;
-    font-size: 0.82rem;
+    font-size: 0.92rem;
   }
 
   li {
-    font-size: 0.82rem;
+    font-size: 0.92rem;
   }
 
   /* Links */
@@ -1982,67 +2072,67 @@ body.sidebar-open {
   /* ── Blockquotes & callouts ── */
   blockquote,
   .minimal-output {
-    font-size: 0.76em;
+    font-size: 0.88em;
     padding: 0 0 0 0.75rem;
   }
 
   blockquote p,
   .minimal-output p {
-    font-size: 0.78rem;
+    font-size: 0.88rem;
   }
 
   .minimal-note,
   .minimal-warning {
     margin: 1rem 0;
     padding: 0.2rem 0 0.2rem 0.85rem;
-    font-size: 0.72rem;
+    font-size: 0.84rem;
   }
 
   .minimal-note>strong:first-child,
   .minimal-note>p:first-child>strong:first-child,
   .minimal-warning>strong:first-child,
   .minimal-warning>p:first-child>strong:first-child {
-    font-size: 0.68rem;
+    font-size: 0.8rem;
   }
 
   /* ── Code blocks ── */
   pre,
   pre.sourceCode {
-    padding: 0.55rem 0.75rem !important;
-    font-size: 0.63rem !important;
-    line-height: 1.45;
+    padding: 0.6rem 0.8rem !important;
+    font-size: 0.72rem !important;
+    line-height: 1.5;
   }
 
   .code-copy-button {
     top: 0.4rem !important;
     right: 0.4rem !important;
-    width: 1.7rem !important;
-    height: 1.7rem !important;
+    width: 1.85rem !important;
+    height: 1.85rem !important;
   }
 
   /* Inline code */
   code {
-    font-size: 0.82em;
+    font-size: 0.86em;
     padding: 0.08em 0.22em;
   }
 
   table {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
   }
 
   th {
-    font-size: 0.6rem;
+    font-size: 0.66rem;
   }
 
   th,
   td {
-    padding: 0.45rem 0.7rem;
+    padding: 0.5rem 0.7rem;
   }
 
   /* ── Details summary pill ── */
   details>summary {
-    font-size: 0.58rem;
-    padding: 0.18rem 0.4rem;
+    font-size: 0.68rem;
+    padding: 0.28rem 0.5rem;
   }
 
   /* ── Blockquote figure captions ── */
@@ -2050,38 +2140,40 @@ body.sidebar-open {
   blockquote:has(img) figure+p,
   blockquote:has(img) p+p {
     margin-top: var(--figure-caption-gap) !important;
-    font-size: 0.7rem;
+    font-size: 0.74rem;
+    max-width: 100%;
   }
 
   /* ── Figure captions ── */
   figcaption,
   .figure-caption,
   .quarto-figure-caption {
-    font-size: 0.64rem;
+    font-size: 0.72rem;
+    max-width: 100%;
   }
 
   /* ── Title block ── */
   #title-block-header,
   .quarto-title-block {
-    margin: 1.8rem 0 1.2rem !important;
+    margin: 1.4rem 0 1rem !important;
     padding: 0 0 1rem;
   }
 
   /* ── Sidebar drawer ── */
   #workflow-sidebar {
-    width: calc(100vw - 64px) !important;
+    width: min(320px, calc(100vw - 52px)) !important;
   }
 
   .workflow-sidebar__footer {
-    padding: 0.3rem 0.5rem;
+    padding: 0.35rem 0.55rem;
   }
 
   .pipeline-nav a {
-    font-size: 0.82rem;
+    font-size: 0.9rem;
   }
 
   .pipeline-nav__section-title {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
 }
 
@@ -2090,104 +2182,105 @@ body.sidebar-open {
    ═══════════════════════════════════════════════ */
 @media (max-width: 400px) {
   body {
-    font-size: 11.5px;
+    font-size: 13.25px;
   }
 
   main.content {
-    padding: 5rem 0.6rem 4rem !important;
+    padding: calc(56px + 1.1rem + env(safe-area-inset-top, 0px)) 0.85rem calc(4rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .title {
-    letter-spacing: -0.04em;
+    letter-spacing: -0.03em;
+    font-size: clamp(2.35rem, 11.5vw, 3.1rem) !important;
   }
 
   .subtitle {
-    font-size: clamp(0.88rem, 4vw, 0.98rem);
+    font-size: clamp(0.95rem, 4vw, 1.05rem);
     margin-top: 0.2rem;
   }
 
   h1:not(.title) {
-    font-size: 1.5rem !important;
+    font-size: 1.55rem !important;
   }
 
   h2 {
-    font-size: 1.3rem !important;
+    font-size: 1.32rem !important;
   }
 
   h3 {
-    font-size: 1.05rem !important;
+    font-size: 1.1rem !important;
   }
 
   h4 {
-    font-size: 0.9rem !important;
+    font-size: 0.98rem !important;
   }
 
   p,
   li {
-    font-size: 0.76rem;
+    font-size: 0.9rem;
   }
 
   .minimal-note,
   .minimal-warning {
-    font-size: 0.66rem;
+    font-size: 0.8rem;
     padding: 0.3rem 0 0.3rem 0.7rem;
   }
 
   blockquote,
   .minimal-output {
-    font-size: 0.70em;
+    font-size: 0.86em;
     padding: 0 0 0 0.65rem;
   }
 
   blockquote p,
   .minimal-output p {
-    font-size: 0.72rem;
+    font-size: 0.84rem;
   }
 
   pre,
   pre.sourceCode {
-    font-size: 0.60rem !important;
-    padding: 0.45rem 0.55rem !important;
+    font-size: 0.68rem !important;
+    padding: 0.55rem 0.65rem !important;
   }
 
   code {
-    font-size: 0.8em;
+    font-size: 0.84em;
   }
 
   table {
-    font-size: 0.68rem;
+    font-size: 0.74rem;
   }
 
   th {
-    font-size: 0.56rem;
+    font-size: 0.62rem;
   }
 
   th,
   td {
-    padding: 0.35rem 0.55rem;
+    padding: 0.42rem 0.58rem;
   }
 
   details>summary {
-    font-size: 0.55rem;
+    font-size: 0.64rem;
   }
 
   figcaption,
   .figure-caption,
   .quarto-figure-caption {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
   }
 
   #workflow-sidebar {
-    width: calc(100vw - 64px) !important;
+    width: min(300px, calc(100vw - 48px)) !important;
   }
 
   .pipeline-nav a {
-    font-size: 0.78rem;
-    padding: 0.32rem 0.5rem;
+    font-size: 0.88rem;
+    padding: 0.65rem 0.7rem 0.65rem 1.3rem;
   }
 
   .pipeline-nav__section-title {
-    font-size: 0.84rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -2369,6 +2462,13 @@ html[data-theme="dark"] .hero-img--dark {
   .hero-figure {
     max-width: 100%;
   }
+
+  .hero-caption {
+    max-width: 100%;
+    text-align: left;
+    font-size: 0.85em;
+    margin-bottom: 1.35rem;
+  }
 }
 
 .page-nav {
@@ -2483,13 +2583,29 @@ html[data-theme="dark"] .hero-img--dark {
   }
 }
 
-/* Center Home Page Vertically */
-body.is-home-page #quarto-content {
-  display: flex !important;
-  align-items: center;
+/* Center Home Page Vertically — desktop only (mobile uses fixed-header padding) */
+@media (min-width: 981px) {
+  body.is-home-page #quarto-content {
+    display: flex !important;
+    align-items: center;
+  }
+
+  body.is-home-page main.content {
+    padding-bottom: 2rem !important;
+    padding-top: 2rem !important;
+  }
 }
 
-body.is-home-page main.content {
-  padding-bottom: 2rem !important;
-  padding-top: 2rem !important;
+/* Touch / coarse pointer: hide hover hook (sticky hover is noisy on tap) */
+@media (hover: none), (pointer: coarse) {
+  .hook-rail--hover {
+    display: none !important;
+  }
+}
+
+/* Phone/tablet drawer: same — prefer active hook only */
+@media (max-width: 980px) {
+  .hook-rail--hover {
+    display: none !important;
+  }
 }
