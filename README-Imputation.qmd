@@ -1838,4 +1838,4 @@ rm -r ../00-raw
 
 The resulting `vcf/` directory contains the final imputed variants ready for subsetting by target cohort (`cohort-01` through `cohort-05`) and executing GWAS.
 
-For any doubts or suggestions, you can contact me via [Email](muh.umer.h@gmail.com) or [LinkedIn](https://www.linkedin.com/in/muhammad-umer-hk/).
+This is the end of the genotype imputation pipeline documentation. For any doubts or suggestions, you can contact me via my socials [LinkedIn](https://www.linkedin.com/in/muhammad-umer-hk/) or [GitHub](https://github.com/bioinumer).
